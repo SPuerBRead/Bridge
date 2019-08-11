@@ -1,0 +1,438 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DNSLOG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+    <script type="text/javascript">
+        toastr.options.positionClass = 'toast-bottom-right';
+    </script>
+    <style>
+        .list-unstyled > li {
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body style="background-color: #f1f1f1; padding-bottom: 0; font-family: Tahoma,Arial,Hiragino Sans GB,simsun,sans-serif">
+
+<div th:insert="~{mainheader :: nav}"></div>
+
+
+<div class="container" style="margin-top: 60px" data-example-id="simple-table">
+    <div>
+        <ul class="nav nav-tabs" role="tablist" id="recordTab">
+            <li role="presentation" class="active"><a href="#recordA" aria-controls="recordA" role="tab"
+                                                      data-toggle="tab">A记录配置</a></li>
+            <li role="presentation"><a href="#recordRebind" aria-controls="recordRebind" role="tab" data-toggle="tab">Rebind记录配置</a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade in active" id="recordA">
+            <div class="row" style="margin-top: 10px">
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="delAllA()">删除所有</button>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addAModal">
+                        新增A记录
+                    </button>
+                </div>
+                <div class="modal fade" id="addAModal" tabindex="-1" role="dialog" aria-labelledby="addAModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">新增A记录</h4>
+                            </div>
+                            <div class="modal-body" style="overflow: hidden;">
+                                <form>
+                                    <div class="form-group">
+                                        <label for="subDomainA">子域名</label>
+                                        <input type="text" class="form-control" id="subDomainA" name="subDomainA"
+                                               placeholder="只需要填写子域名，不需要添加*.host.xx">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="destIP">目的IP</label>
+                                        <input type="text" class="form-control" id="destIP" name="destIP"
+                                               placeholder="1.1.1.1">
+                                    </div>
+                                    <input type="button" onclick="addRecordA()" class="btn btn-default"
+                                           style="float: right" value="提交">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table" style="margin-top: 10px">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Host</th>
+                    <th>IP</th>
+                    <th>Time</th>
+                    <th>操作</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="DnsA,DnsAStat:${dnsRecordASettingList}">
+                    <td th:text="${DnsAStat.index+1}"></td>
+                    <td th:text="${DnsA['host']}"></td>
+                    <td th:text="${DnsA['ip']}"></td>
+                    <td th:text="${DnsA['time']}"></td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" th:id="${DnsA['id']}" data-toggle="modal"
+                                th:data-target="'#DnsAStat_'+${DnsAStat.index+1}">编辑
+                        </button>
+                        <div class="modal fade" th:id="'DnsAStat_'+${DnsAStat.index+1}" tabindex="-1" role="dialog"
+                             aria-labelledby="editDnsALabel">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="editDnsALabel">编辑解析</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form style="overflow: hidden;">
+                                            <div class="form-group">
+                                                <label th:for="'subDomainAEdit_'+${DnsA['id']}">子域名</label>
+                                                <input type="text" class="form-control"
+                                                       th:id="'subDomainAEdit_'+${DnsA['id']}" name="subDomainA"
+                                                       th:value="${DnsA['subdomain']}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label th:for="'destIPEdit'+${DnsA['id']}">目的IP</label>
+                                                <input type="text" class="form-control"
+                                                       th:id="'destIPEdit'+${DnsA['id']}" name="destIP"
+                                                       th:value="${DnsA['ip']}">
+                                            </div>
+                                            <input type="button" th:id="${DnsA['id']}" onclick="editRecordA(this.id)"
+                                                   class="btn btn-default" style="float: right" value="提交">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" th:id="${DnsA['id']}"
+                                onclick="delOneA(this.id)">删除
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="recordRebind">
+            <div class="row" style="margin-top: 10px">
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="delAllRebind()">删除所有</button>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addRebindModal">
+                        新增Rebind记录
+                    </button>
+                </div>
+                <div class="modal fade" id="addRebindModal" tabindex="-1" role="dialog"
+                     aria-labelledby="addRebindModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="addRebindModalLabel">新增Rebind记录（源IP地址的C段都会走Rebind）</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form style="overflow: hidden;">
+                                    <div class="form-group">
+                                        <label for="subDomainRebind">子域名</label>
+                                        <input type="text" class="form-control" id="subDomainRebind"
+                                               placeholder="只需要填写子域名，不需要添加*.host.xx">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="destIPRebind1">IP1</label>
+                                        <input type="text" class="form-control" id="destIPRebind1" name="destIPRebind1"
+                                               placeholder="1.1.1.1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="destIPRebind2">IP2</label>
+                                        <input type="text" class="form-control" id="destIPRebind2" name="destIPRebind2"
+                                               placeholder="2.2.2.2">
+                                    </div>
+                                    <input type="button" onclick="addRecordRebind()" class="btn btn-default"
+                                           style="float: right" value="提交">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table" style="margin-top: 10px">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Host</th>
+                    <th>IP1</th>
+                    <th>IP2</th>
+                    <th>Time</th>
+                    <th>操作</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="DnsRebind,DnsRebindStat:${dnsRecordRebindSettingList}">
+                    <td th:text="${DnsRebindStat.index+1}"></td>
+                    <td th:text="${DnsRebind['host']}"></td>
+                    <td th:text="${DnsRebind['ip1']}"></td>
+                    <td th:text="${DnsRebind['ip2']}"></td>
+                    <td th:text="${DnsRebind['time']}"></td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" th:id="${DnsRebind['id']}"
+                                data-toggle="modal" th:data-target="'#DnsRebindStat_'+${DnsRebindStat.index+1}">编辑
+                        </button>
+                        <div class="modal fade" th:id="'DnsRebindStat_'+${DnsRebindStat.index+1}" tabindex="-1"
+                             role="dialog" aria-labelledby="editDnsRebindLabel">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title" id="editDnsRebindLabel">编辑解析</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form style="overflow: hidden;">
+                                            <div class="form-group">
+                                                <label for="subDomainRebind">子域名</label>
+                                                <input type="text" class="form-control"
+                                                       th:id="'rebindSubdomain_'+${DnsRebind['id']}"
+                                                       name="subdomainRebind" th:value="${DnsRebind['subdomain']}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="destIPRebind1">IP1</label>
+                                                <input type="text" class="form-control"
+                                                       th:id="'rebindIP1_'+${DnsRebind['id']}" name="destIPRebind1"
+                                                       th:value="${DnsRebind['ip1']}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="destIPRebind2">IP2</label>
+                                                <input type="text" class="form-control"
+                                                       th:id="'rebindIP2_'+${DnsRebind['id']}" name="destIPRebind2"
+                                                       th:value="${DnsRebind['ip2']}">
+                                            </div>
+                                            <input type="button" th:id="${DnsRebind['id']}"
+                                                   onclick="editRecordRebind(this.id)" class="btn btn-default"
+                                                   style="float: right" value="提交">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" th:id="${DnsRebind['id']}"
+                                onclick="delOneRebind(this.id)">删除
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+<script>
+    var tabNum = localStorage.getItem("whichTab");
+    if (tabNum === "2") {
+        $('#recordTab a[href="#recordRebind"]').tab('show')
+        localStorage.setItem("whichTab", "0");
+    }
+
+    function editRecordA(id) {
+        var subdomainA = document.getElementById("subDomainAEdit_" + id).value;
+        var ip = document.getElementById("destIPEdit" + id).value;
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/edit/a",
+            dataType: "json",
+            data: {
+                "subDomainA": subdomainA,
+                "destIP": ip,
+                "id": id
+            },
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                alert("系统错误，更新失败");
+            }
+        });
+    }
+
+    function editRecordRebind(id) {
+        var subDomainRebind = document.getElementById("rebindSubdomain_" + id).value;
+        var destIPRebind1 = document.getElementById("rebindIP1_" + id).value;
+        var destIPRebind2 = document.getElementById("rebindIP2_" + id).value;
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/edit/rebind",
+            dataType: "json",
+            data: {
+                "subDomainRebind": subDomainRebind,
+                "destIPRebind1": destIPRebind1,
+                "destIPRebind2": destIPRebind2,
+                "id": id
+            },
+            success: function (response) {
+                if (response.status === true) {
+                    localStorage.setItem("whichTab", "2");
+                    location.reload();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                alert("系统错误，更新失败");
+            }
+        });
+    }
+
+    function addRecordA() {
+        var subdomainA = document.getElementById("subDomainA").value;
+        var ip = document.getElementById("destIP").value;
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/add/a",
+            dataType: "json",
+            data: {
+                "subDomainA": subdomainA,
+                "destIP": ip
+            },
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                alert("系统错误，新增失败");
+            }
+        });
+    }
+
+    function addRecordRebind() {
+        var subDomainRebind = document.getElementById("subDomainRebind").value;
+        var destIPRebind1 = document.getElementById("destIPRebind1").value;
+        var destIPRebind2 = document.getElementById("destIPRebind2").value;
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/add/rebind",
+            dataType: "json",
+            data: {
+                "subDomainRebind": subDomainRebind,
+                "destIPRebind1": destIPRebind1,
+                "destIPRebind2": destIPRebind2
+            },
+            success: function (response) {
+                if (response.status === true) {
+                    localStorage.setItem("whichTab", "2");
+                    location.reload();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                alert("系统错误，新增失败");
+            }
+        });
+    }
+
+    function delOneA(id) {
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/delete/a",
+            data: {
+                "id": id
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+    function delOneRebind(id) {
+        $.ajax({
+            type: "post",
+            url: "/dns_setting/delete/rebind",
+            data: {
+                "id": id
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    localStorage.setItem("whichTab", "2");
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+    function delAllA() {
+        $.ajax({
+            type: "get",
+            url: "/dns_setting/delete_all/a",
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+    function delAllRebind() {
+        $.ajax({
+            type: "get",
+            url: "/dns_setting/delete_all/rebind",
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    localStorage.setItem("whichTab", "2");
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+</script>
+</html>

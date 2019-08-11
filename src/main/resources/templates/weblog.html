@@ -1,0 +1,132 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DNSLOG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        .list-unstyled > li {
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body style="background-color: #f1f1f1; padding-bottom: 0; font-family: Tahoma,Arial,Hiragino Sans GB,simsun,sans-serif">
+
+<div th:insert="~{mainheader :: nav}"></div>
+
+<div class="container" style="margin-top: 60px" data-example-id="simple-table">
+
+    <div class="row" style="margin-top: 10px">
+        <div class="col-md-2"><p style="font-size:20px;" th:text="'总记录数: '+${weblogList.size()}"></p></div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm" onclick="delAll()">删除所有</button>
+        </div>
+    </div>
+    <table class="table" style="margin-top: 10px">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Host</th>
+            <th>IP</th>
+            <th>Method</th>
+            <th>UserAgent</th>
+            <th>Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="weblog,weblogStat:${weblogList}">
+            <td th:text="${weblogStat.index+1}"></td>
+            <td th:text="${weblog['host']}"></td>
+            <td th:text="${weblog['ip']}"></td>
+            <td th:text="${weblog['method']}"></td>
+            <td th:text="${weblog['userAgent']}"></td>
+            <td th:text="${weblog['time']}"></td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" th:id="${weblog['id']}" data-toggle="modal"
+                        th:data-target="'#'+${weblogStat.index+1}">详细
+                </button>
+                <div class="modal fade" th:id="${weblogStat.index+1}" tabindex="-1" role="dialog"
+                     aria-labelledby="itemInfoModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="itemInfoModalLabel">请求信息</h4>
+                            </div>
+                            <div class="modal-body"
+                                 style="font-family: SFMono-Regular, Consolas,Liberation Mono, Menlo, Courier, monospace; font-size:12px; margin: 5px;">
+                                <ul class="list-unstyled">
+                                    <li th:text="${weblog['method']}+' '+${weblog['path']}+${weblog['query']}+' '+${weblog['version']}"></li>
+                                    <br>
+                                    <li>
+                                        <div th:each="header:${weblog['header']}">
+                                            <div th:text="${header.key}+': '+${header.value}"></div>
+                                        </div>
+                                    </li>
+                                    <br th:if="${weblog['data']!=''}">
+                                    <li th:text="${weblog['data']}"></li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" th:id="${weblog['id']}" onclick="delOne(this.id)">
+                    删除
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    function delOne(id) {
+        $.ajax({
+            type: "post",
+            url: "/weblog/delete",
+            data: {
+                "id": id
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+    function delAll() {
+        $.ajax({
+            type: "get",
+            url: "/weblog/delete_all",
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+</script>
+</body>
+
+</html>

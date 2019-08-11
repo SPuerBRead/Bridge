@@ -1,0 +1,423 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DNSLOG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script type="text/javascript">
+        toastr.options.positionClass = 'toast-bottom-right';
+    </script>
+</head>
+
+<body style="background-color: #f1f1f1; padding-bottom: 0;font-family: Tahoma,Arial,Hiragino Sans GB,simsun,sans-serif">
+
+<div th:insert="~{mainheader :: nav}"></div>
+
+<div class="container" style="margin-top: 60px" data-example-id="simple-table">
+
+    <div class="row" style="margin-top: 10px">
+        <div class="col-md-2"> <p style="font-size:20px;" th:text="'总记录数: '+${responseList.size()}"></p></div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-danger btn-sm" onclick="delAll()">删除所有</button>
+        </div>
+        <div class="col-md-1">
+            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#addResponseModal">
+                新增响应记录
+            </button>
+        </div>
+        <div class="modal fade" id="addResponseModal" tabindex="-1" role="dialog"
+             aria-labelledby="addResponseModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="addResponseModalLabel">新增响应记录</h4>
+                    </div>
+                    <div class="modal-body" style="overflow: hidden;">
+                        <form id="new_form" method="post">
+                            <div class="form-group" id="new_subdomain">
+                                <label for="subDomain">子域名</label>
+                                <input type="text" class="form-control" id="subDomain"
+                                       placeholder="只需要填写子域名，不需要添加*.host.xx">
+                            </div>
+                            <div class="form-group" id="new_response_type">
+                                <label for="new_type">返回内容类型</label>
+                                <select class="form-control" id="new_type">
+                                    <option value="Data">Data</option>
+                                    <option value="Redirect">Redirect</option>
+                                    <option value="Error">Error</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="new_status_code">
+                                <label for="statusCode">状态码</label>
+                                <input type="text" class="form-control" id="statusCode" value="200">
+                            </div>
+                            <div class="form-group" id="new_response_body">
+                                <label for="responseBody">Response Body</label>
+                                <input type="text" class="form-control" id="responseBody" name="responseBody"
+                                       placeholder="&#123;&#34;success&#34;:true&#125;">
+                            </div>
+                            <div class="form-group" id="new_redirect_url" style="display: none">
+                                <label for="redirectURL">Redirect URL</label>
+                                <input type="text" class="form-control" id="redirectURL" name="redirectURL"
+                                       placeholder="https://www.baidu.com">
+                            </div>
+                            <div class="form-group" id="new_header_group">
+                            </div>
+                            <div class="btn btn-primary" id="add_header">添加Header</div>
+                            <input type="button" id="submit_new_response" class="btn btn-default"
+                                   style="float: right" value="提交">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <table class="table" style="margin-top: 10px">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Host</th>
+                <th>responseType</th>
+                <th>StatusCode</th>
+                <th>Time</th>
+                <th>操作</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="response,responseStat:${responseList}">
+            <td th:text="${responseStat.index+1}"></td>
+            <td th:text="${response['host']}"></td>
+            <td th:text="${response['responseType']}"></td>
+            <td th:text="${response['statusCode']}"></td>
+            <td th:text="${response['time']}"></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" id="edit_response" data-toggle="modal"
+                            th:data-target="'#responseStat'+${responseStat.index+1}" th:data-index="${responseStat.index}">编辑
+                    </button>
+                    <div class="modal fade" th:id="'responseStat'+${responseStat.index+1}" tabindex="-1" role="dialog"
+                         aria-labelledby="editResponseALabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="editResponseALabel">编辑响应</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="edit-form" style="overflow: hidden;" id="edit_response_form">
+                                        <div class="form-group" id="edit_subdomain">
+                                            <label th:for="'editSubdomain'+${response['id']}">子域名</label>
+                                            <input type="text" class="form-control"
+                                                   th:id="'editSubdomain'+${response['id']}" name="editSubdomain"
+                                                   th:value="${response['subDomain']}">
+                                        </div>
+                                        <div class="form-group" id="edit_response_type">
+                                            <label th:for="'editResponseType'+${response['id']}">返回内容类型</label>
+                                            <select class="form-control" id="edit_type">
+                                                <option value="Data" th:selected="${response['responseType']} == 'Data'">Data</option>
+                                                <option value="Redirect" th:selected="${response['responseType']} == 'Redirect'">Redirect</option>
+                                                <option value="Error" th:selected="${response['responseType']} == 'Error'">Error</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" id="edit_status_code">
+                                            <label th:id="'editStatusCode'+${response['id']}">状态码</label>
+                                            <input type="text" class="form-control" th:id="'editStatusCode'+${response['id']}" th:value="${response['statusCode']}">
+                                        </div>
+                                        <div class="form-group" id="edit_response_body">
+                                            <label for="responseBody">Response Body</label>
+                                            <input type="text" class="form-control" th:id="'editResponseBody'+${response['id']}" name="responseBody"
+                                                   th:value="${response['responseBody']}">
+                                        </div>
+                                        <div class="form-group" id="edit_redirect_url">
+                                            <label for="redirectURL">Redirect URL</label>
+                                            <input type="text" class="form-control" th:id="'editRedirectURL'+${response['id']}" name="redirectURL"
+                                                   th:value="${response['redirectURL']}">
+                                        </div>
+                                        <div class="form-group" id="edit_header_group">
+                                            <div th:each="header,headerStat:${response['headers']}" class="form-group">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">header</span>
+                                                    <input class="form-control" type="text" th:id="'edit_header_input_'+${response['id']}" th:value="${header}">
+                                                    <span class="input-group-addon glyphicon glyphicon-remove" id="header_del_btn"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <input type="button" class="btn btn-primary" id="edit_add_header" value="新增Header"></input>
+                                        <input type="button" id="submit_edit_response"
+                                               class="btn btn-default" style="float: right" value="提交">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            <td>
+            <button type="button" class="btn btn-danger btn-sm" th:id="${response['id']}" onclick="delOne(this.id)">删除</button>
+            </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+<script>
+    (function () {
+        initEvent();
+
+
+        function createHeaderDom() {
+            var formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+
+            var inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+            var input = document.createElement('input');
+            input.className = 'form-control';
+            input.placeholder = 'Token: xxxxxx';
+            input.type = 'text';
+            var inputDel = document.createElement('span');
+            inputDel.className = 'input-group-addon glyphicon glyphicon-remove';
+            inputDel.id = 'header_del_btn';
+            var inputAddon = document.createElement('span');
+            inputAddon.innerText = 'header';
+            inputAddon.className = 'input-group-addon';
+            inputGroup.appendChild(inputAddon);
+            inputGroup.appendChild(input);
+            inputGroup.appendChild(inputDel);
+
+            formGroup.appendChild(inputGroup);
+            return formGroup;
+        }
+
+        // 编辑框添加header事件
+        function editModalEventBind() {
+            // 添加header
+            $('.edit-form #edit_add_header').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target;
+                target.parentElement.querySelector('#edit_header_group').appendChild(createHeaderDom());
+            })
+            // 删除header
+            $('.edit-form #edit_header_group').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target;
+                if (target.id === 'header_del_btn') {
+                    target.parentElement.parentElement.parentElement.removeChild(target.parentElement.parentElement);
+                }
+            })
+            // datatype change
+            $('.edit-form #edit_type').on('change', function (e) {
+                e = e || window.event;
+                var target = e.target,
+                    value = target.value,
+                    form = target.parentElement.parentElement;
+                $(form).find('#edit_status_code').hide();
+                $(form).find('#edit_response_body').hide();
+                $(form).find('#edit_redirect_url').hide();
+
+                switch (value) {
+                    case 'Data': $(form).find('#edit_status_code').show();$(form).find('#edit_response_body').show(); break;
+                    case 'Redirect': $(form).find('#edit_redirect_url').show();break;
+                    case 'Error': $(form).find('#edit_status_code').show(); break;
+
+                }
+            })
+
+            $('[id=edit_response]').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target,
+                    form = $(target.parentElement).find('#edit_response_form')[0];
+                console.log(form)
+                console.log(1111)
+                var value = $(form).find('#edit_type')[0].value;
+                $(form).find('#edit_status_code').hide();
+                $(form).find('#edit_response_body').hide();
+                $(form).find('#edit_redirect_url').hide();
+                console.log(value)
+                switch (value) {
+                    case 'Data': $(form).find('#edit_status_code').show();$(form).find('#edit_response_body').show(); break;
+                    case 'Redirect': $(form).find('#edit_redirect_url').show();break;
+                    case 'Error': $(form).find('#edit_status_code').show(); break;
+
+                }
+            })
+
+            $('.edit-form #submit_edit_response').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target,
+                    form = target.parentElement.parentElement;
+                var header_list = [];
+                var header_element_list = $(form).find('#edit_header_group input')
+                for(var i=0; i < header_element_list.length; i++){
+                    header_list.push(header_element_list[i].value);
+                }
+                var edit_subdomain = $(form).find('#edit_subdomain input')[0].value;
+                var edit_id = $(form).find('#edit_subdomain input')[0].id.replace("editSubdomain","")
+                var edit_response_type = $(form).find('#edit_response_type select')[0].value;
+                var edit_status_code = $(form).find('#edit_status_code input')[0].value;
+                var edit_response_body = $(form).find('#edit_response_body input')[0].value;
+                var edit_redirect_url = $(form).find('#edit_redirect_url input')[0].value;
+
+                $.ajax({
+                    type: "post",
+                    url: "/response_setting/edit",
+                    dataType: "json",
+                    data: {
+                        "subDomain": edit_subdomain,
+                        "responseType": edit_response_type,
+                        "statusCode": edit_status_code,
+                        "responseBody": edit_response_body,
+                        "redirectURL": edit_redirect_url,
+                        "headers": JSON.stringify(header_list),
+                        "id":edit_id
+                    },
+                    success: function (response) {
+                        if (response.status === true) {
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (response) {
+                        alert("系统错误，更新失败");
+                    }
+                });
+
+
+            })
+        }
+
+        function newModalEventBind() {
+            $('#new_form #add_header').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target;
+                target.parentElement.querySelector('#new_header_group').appendChild(createHeaderDom());
+            })
+            // 删除header
+            $('#new_form #new_header_group').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target;
+                if (target.id === 'header_del_btn') {
+                    target.parentElement.parentElement.parentElement.removeChild(target.parentElement.parentElement);
+                }
+            })
+            $('#new_form #new_type').on('change', function (e) {
+                e = e || window.event;
+                var target = e.target,
+                    value = target.value,
+                    form = target.parentElement.parentElement;
+                $(form).find('#new_status_code').hide();
+                $(form).find('#new_response_body').hide();
+                $(form).find('#new_redirect_url').hide();
+
+                switch (value) {
+                    case 'Data': $(form).find('#new_status_code').show();$(form).find('#new_response_body').show(); break;
+                    case 'Redirect': $(form).find('#new_redirect_url').show();break;
+                    case 'Error': $(form).find('#new_status_code').show(); break;
+                }
+
+            })
+            $('#new_form #submit_new_response').on('click', function (e) {
+                e = e || window.event;
+                var target = e.target,
+                    form = target.parentElement.parentElement;
+                var header_list = [];
+                var header_element_list = $(form).find('#new_header_group input')
+                for(var i=0; i < header_element_list.length; i++){
+                    header_list.push(header_element_list[i].value);
+                }
+                var new_subdomain = $(form).find('#new_subdomain input')[0].value;
+                var new_response_type = $(form).find('#new_response_type select')[0].value;
+                var new_status_code = $(form).find('#new_status_code input')[0].value;
+                var new_response_body = $(form).find('#new_response_body input')[0].value;
+                var new_redirect_url = $(form).find('#new_redirect_url input')[0].value;
+
+                $.ajax({
+                    type: "post",
+                    url: "/response_setting/add",
+                    dataType: "json",
+                    data: {
+                        "subDomain": new_subdomain,
+                        "responseType": new_response_type,
+                        "statusCode": new_status_code,
+                        "responseBody": new_response_body,
+                        "redirectURL": new_redirect_url,
+                        "headers": JSON.stringify(header_list)
+                    },
+                    success: function (response) {
+                        if (response.status === true) {
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (response) {
+                        alert("系统错误，更新失败");
+                    }
+                });
+
+
+            })
+        }
+
+
+        function initEvent() {
+            newModalEventBind();
+            editModalEventBind();
+        }
+
+
+    }())
+
+
+    function delAll() {
+        $.ajax({
+            type: "get",
+            url: "/response_setting/delete_all",
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+    function delOne(id) {
+        $.ajax({
+            type: "post",
+            url: "/response_setting/delete",
+            data: {
+                "id": id
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.status === true) {
+                    location.reload();
+                } else {
+                    alert("删除失败");
+                }
+            },
+            error: function (response) {
+                alert("删除失败");
+            }
+        });
+    }
+
+</script>
+</html>
+
+
+
+

@@ -1,0 +1,74 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DNSLOG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body style="background-color: #f1f1f1; padding-bottom: 0">
+
+<div th:insert="~{mainheader :: nav}"></div>
+
+<div class="container" style="margin-top: 100px" >
+    <dl class="dl-horizontal" th:each="item,data:${apimap}">
+        <dt th:text="${data.current.key}"></dt>
+        <dd th:text="${data.current.value}"></dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>rebind解析</dt>
+        <dd>1、 1.1.1.1.2.2.2.2.1.dns.com即为rebind，第一次解析为1.1.1.1，第二次解析为2.2.2.2 上一次访问的ip，下一次同c段的地址都会返回rebind结果</dd>
+        <dd>2、 通过配置解析处进行配置</dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>自定义解析IP</dt>
+        <dd>1、 通过域名8.8.8.8.1.dns.com即解析为8.8.8.8</dd>
+        <dd>2、 通过配置解析处进行配置</dd>
+        <dd>3、 优先按照域名匹配进行处理，即数据库中存储8.8.8.8.1.dns.com指向1.1.1.1，实际请求结果仍然会返回8.8.8.8，rebind记录也是一样</dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>dnslog查询接口</dt>
+        <dd>http://xxx.xx/api/dnslog/search?token={apiKey}&keyword={test}</dd>
+        <dd>keyword参数值必须是完整除去logAdress后的部分，此处没有模糊查询，如aaaaaa.1.dnslog.com对应keyword=aaaaaa，返回数据格式样例如下：</dd>
+        <dd>&nbsp;</dd>
+        <dd>
+            <pre>
+]
+  {
+    "ip": "localhost",
+    "host": "test1.1.dns.xxxx.com",
+    "time": "2019-07-30 15:25:14.0",
+    "type": "A(1)"
+  }
+]</pre>
+        </dd>
+    </dl>
+    <dl class="dl-horizontal">
+        <dt>weblog查询接口</dt>
+        <dd>http://xxx.xx/api/weblog/search?token={apiKey}&keyword={test}</dd>
+        <dd>keyword要求同上，返回数据格式样例如下：</dd>
+        <dd>&nbsp;</dd>
+        <dd>
+            <pre>
+[
+  {
+    "path": "/",
+    "method": "POST",
+    "data": "",
+    "ip": "10.10.37.75",
+    "host": "test.1.dns.xxxx.com",
+    "header": "{\"content-length\":\"22896\",\"postman-token\":\"9575b873-ccd9-4d5b-ba8a-c1f746e40086\",\"host\":\"test.1.dns.xxxx.com\",\"content-type\":\"text/plain\",\"connection\":\"keep-alive\",\"cache-control\":\"no-cache\",\"accept-encoding\":\"gzip, deflate\",\"user-agent\":\"PostmanRuntime/7.13.0\",\"accept\":\"*/*\"}",
+    "time": "2019-07-23 17:50:10.0",
+    "params": null,
+    "version": "HTTP/1.1"
+  }
+]</pre>
+        </dd>
+    </dl>
+
+</div>
+
+</body>
+</html>
