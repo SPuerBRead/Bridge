@@ -16,12 +16,14 @@
 * 数据查询API
 
 
-部署方法
+部署方法（支持手动部署和Docker部署）
 -----------
+
+### 1. 手动部署
 
 #### 域名解析
 
-    假设根域名是dnslog.com，服务器IP是10.10.10.10进行以下配置
+假设根域名是dnslog.com，服务器IP是10.10.10.10进行以下配置
     
     配置A记录，子域名ns，解析到10.10.10.10
     
@@ -29,39 +31,64 @@
     
     配置A记录，子域名dnslog，解析到10.10.10.10
     
-    dnslog.dnslog.com 用于访问平台web
+dnslog.dnslog.com 用于访问平台web
     
-    dns.dnslog.com 作为测试时payload中设置的域名，每个用户对应dns.dnslog.com下的子域名，如1.dns.dnslog.com，登录平台后可以在API信息中看到对应的地址
+dns.dnslog.com 作为测试时payload中设置的域名，每个用户对应dns.dnslog.com下的子域名，如1.dns.dnslog.com，登录平台后可以在API信息中看到对应的地址
     
-    子域名随意设置，对应上即可
+子域名随意设置，对应上即可
     
 #### 数据库配置
 
-    登录mysql执行以下命令
+登录mysql执行以下命令，bridge.sql在程序的根目录下
     
     source bridge.sql
-    
-    bridge.sql在程序的根目录下
 
 #### 服务器配置
 
-    环境：Java 1.8
+环境：Java 1.8、Maven
     
-    修改resources目录下application.properties文件中的web服务端口（默认80端口）和数据库连接信息
+修改resources目录下application.properties文件中的web服务端口（默认80端口）和数据库连接信息
     
     mvn clean package -DskipTests
     
-    maven生成的jar包位置在target目录下，如dns_log-0.0.1-SNAPSHOT.jar
+maven生成的jar包位置在target目录下，如dns_log-0.0.1-SNAPSHOT.jar
     
     java -jar dns_log-0.0.1-SNAPSHOT.jar dns.dnslog.com dnslog.dnslog.com 10.10.10.10 a1b2c3d4
     
-    第一个参数指定payload设置对应的子域名
+第一个参数指定payload设置对应的子域名
     
-    第二个参数指定访问平台对应的子域名
+第二个参数指定访问平台对应的子域名
     
-    第三个参数服务器的IP地址
+第三个参数服务器的IP地址
     
-    第四个参数设置注册时的注册暗号，注册需要填写该字段
+第四个参数设置注册时的注册暗号，注册需要填写该字段
+    
+ 
+### 2. Docker部署
+
+域名解析部分与手动部署相同，无需配置数据库和服务器
+
+    git clone https://github.com/SPuerBRead/Bridge.git
+    cd ./Bridge
+
+默认的mysql密码是password，若要修改，请保持以下两项中的密码相同（可不修改）
+
+    1. docker-compose.yml文件中的MYSQL_ROOT_PASSWORD项
+    
+    2. 程序配置文件application.properties中的spring.datasource.password
+
+修改docker-compose.yml倒数第三行command的值，此处为启动命令，将对应参数替换成域名配置中的信息，如：
+
+    java -jar dns_log-0.0.1-SNAPSHOT.jar dns.dnslog.com dnslog.dnslog.com 10.10.10.10 a1b2c3d4
+
+参数含义见手动部署部分。
+
+配置完成后执行以下命令：
+
+    docker-compose build
+    docker-compose up -d
+    
+访问  dnslog.dnslog.com（实际域名根据根域名和配置而定）即可看到登录界面。
     
 
 部分截图

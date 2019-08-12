@@ -1,0 +1,23 @@
+version: '2'
+services:
+ mysql:
+  container_name: mysql
+  environment:
+   MYSQL_ROOT_PASSWORD: password
+  image: mysql:5.7
+  command: --default-authentication-plugin=mysql_native_password
+  restart: always
+  volumes:
+   - db_data:/var/lib/mysql
+   - ./bridge.sql:/docker-entrypoint-initdb.d/bridge.sql:ro
+ bridge:
+  build: .
+  ports:
+   - 80:80
+  depends_on:
+   - mysql
+  links:
+   - mysql
+  command: nohup java -jar /bridge/target/bridge-1.0-SNAPSHOT.jar dns.dnslog.com dnslog.dnslog.com 10.10.10.10 a1b2c3d4 &
+volumes:
+ db_data: {}
