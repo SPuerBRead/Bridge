@@ -10,7 +10,7 @@ CREATE TABLE `dnslog` (
   `id` varchar(36) DEFAULT NULL,
   `host` text DEFAULT NULL,
   `type` varchar(32) DEFAULT NULL,
-  `ip` varchar(32) DEFAULT NULL,
+  `ip` text DEFAULT NULL,
   `time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `logid` int DEFAULT NULL
 ) CHARSET=utf8;

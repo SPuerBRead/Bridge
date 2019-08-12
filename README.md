@@ -69,12 +69,12 @@
 
 DNSLOG
 
-![15655213527975](https://user-images.githubusercontent.com/18071202/62833043-c938aa00-bc6a-11e9-97b2-60c764a3cdac.jpg)
+![15655801079930](https://user-images.githubusercontent.com/18071202/62844371-6e976080-bcf3-11e9-9356-8c7d10af37b0.jpg)
+
 
 HTTPLOG
 
-![15655216347495](https://user-images.githubusercontent.com/18071202/62833075-45cb8880-bc6b-11e9-9f4c-181cb655cbc5.jpg)
-
+![15655803891520](https://user-images.githubusercontent.com/18071202/62844457-14e36600-bcf4-11e9-8501-744fb1406417.jpg)
 
 API接口
 -----------

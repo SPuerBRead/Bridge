@@ -13,7 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
 import java.util.Map;
 
-@Controller()
+@Controller
 public class APIInfoController {
 
     @Autowired
