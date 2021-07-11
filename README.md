@@ -115,7 +115,7 @@ http://xxx.xx/api/dnslog/search?token={apiKey}&keyword={test}
 keyword参数值必须是完整除去logAdress后的部分，此处没有模糊查询，如aaaaaa.1.dnslog.com对应keyword=aaaaaa，返回数据格式样例如下：
 
 ```
-]
+[
   {
     "ip": "localhost",
     "host": "test1.1.dns.xxxx.com",
