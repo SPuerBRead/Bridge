@@ -35,7 +35,7 @@ public class WebLogIntercept implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String host = request.getHeader("host");
+        String host = request.getHeader("host").replaceAll(":(.*)", "").strip();
         Integer logID;
         if (host.equals(DnslogConfig.managerDomain)) {
             return true;
