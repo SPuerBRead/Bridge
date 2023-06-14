@@ -4,7 +4,7 @@ RUN yum install java-1.8.0-openjdk* -y
 
 RUN yum install wget -y
 
-RUN wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+RUN wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo --no-check-certificate
 RUN yum -y install apache-maven
 
 RUN mkdir /bridge
